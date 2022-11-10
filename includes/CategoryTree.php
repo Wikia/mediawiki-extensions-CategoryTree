@@ -467,8 +467,10 @@ class CategoryTree {
 			$this->getOption( 'notranslations' )
 		) && ExtensionRegistry::getInstance()->isLoaded( 'Translate' );
 
+		$services = MediaWikiServices::getInstance();
+
 		if ( $suppressTranslations ) {
-			$lb = new LinkBatch();
+			$lb = $services->getLinkBatchFactory()->newLinkBatch()->setCaller( __METHOD__ );
 			foreach ( $res as $row ) {
 				$title = Title::newFromText( $row->page_title, $row->page_namespace );
 				// Page name could have slashes, check the subpage for valid language built-in codes
@@ -481,6 +483,8 @@ class CategoryTree {
 
 			$lb->execute();
 		}
+
+		$linkCache = $services->getLinkCache();
 
 		foreach ( $res as $row ) {
 			if ( $suppressTranslations ) {
@@ -502,6 +506,7 @@ class CategoryTree {
 			} else {
 				# TODO: translation support; ideally added to Title object
 				$t = Title::newFromRow( $row );
+				$linkCache->addGoodLinkObjFromRow( $t, $row );
 			}
 
 			$cat = null;
